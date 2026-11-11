@@ -1,0 +1,16 @@
+{
+  "id": "pomodoro",
+  "name": "Pomodoro",
+  "version": "0.1.0",
+  "workshop": "^1",
+  "author": "DoshaLabs",
+  "hint": "Pomodoro timer: focus, short and long breaks",
+  "icon": "icon.svg",
+  "entry": "dist/index.html",
+  "pane": false,
+  "span": 1,
+  "permissions": {
+    "storage": true,
+    "notify": true
+  }
+}
