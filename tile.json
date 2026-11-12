@@ -1,17 +1,19 @@
 {
   "id": "pomodoro",
   "name": "Pomodoro",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "workshop": "^1",
   "author": "DoshaLabs",
   "repo": "https://github.com/DoshaLabs/workshop-pomodoro",
-  "hint": "Pomodoro timer: focus, short and long breaks",
+  "hint": "Pomodoro timer: focus, breaks, a daily goal and your history",
   "icon": "icon.svg",
   "entry": "dist/index.html",
-  "pane": false,
+  "pane": true,
   "span": 1,
   "permissions": {
     "storage": true,
-    "notify": true
+    "notify": true,
+    "sessions": "write",
+    "door": { "ops": ["status", "start", "pause", "skip", "extend"] }
   }
 }

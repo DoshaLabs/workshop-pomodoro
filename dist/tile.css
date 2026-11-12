@@ -2,20 +2,44 @@
 * {
   box-sizing: border-box;
 }
+
+/* The phase colour: red for focus, green for a short break, the accent for a long one.
+   It tints the ring, the primary button, the active tab and, faintly, the whole tile. */
+body {
+  --focus: var(--ws-red);
+  --tone: var(--focus);
+}
+body.phase-short {
+  --tone: var(--ws-green);
+}
+body.phase-long {
+  --tone: var(--ws-accent);
+}
+
 html,
 body {
   margin: 0;
   height: 100%;
-  background: var(--ws-panel);
   color: var(--ws-ink);
   font: 13px/1.45 var(--ws-font, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif);
+}
+html {
+  background: var(--ws-panel);
+}
+body {
+  background: color-mix(in srgb, var(--tone) 5%, var(--ws-panel));
+  transition: background 0.4s;
+}
+body.running {
+  background: color-mix(in srgb, var(--tone) 9%, var(--ws-panel));
 }
 main {
   height: 100%;
   overflow-y: auto;
   padding: 10px 12px;
 }
-button {
+button,
+select {
   font: inherit;
   color: var(--ws-ink);
   background: transparent;
@@ -25,28 +49,28 @@ button {
   cursor: pointer;
 }
 button:hover {
-  border-color: var(--ws-accent);
+  border-color: var(--tone);
 }
 button:focus-visible,
-input:focus-visible {
+input:focus-visible,
+select:focus-visible {
   outline: 2px solid var(--ws-accent);
   outline-offset: 1px;
 }
 .muted {
   color: var(--ws-muted);
 }
+.small {
+  font-size: 11px;
+}
 
-/* The phase colour: red-ish for focus, green for breaks. */
+/* --- the tile ------------------------------------------------------------------------------ */
+
 .timer {
-  --tone: var(--ws-red);
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
   height: 100%;
-}
-.timer.phase-short,
-.timer.phase-long {
-  --tone: var(--ws-green);
 }
 
 .dial {
@@ -65,12 +89,12 @@ input:focus-visible {
   stroke-width: 7;
 }
 .track {
-  stroke: var(--ws-line);
+  stroke: color-mix(in srgb, var(--tone) 18%, var(--ws-line));
 }
 .arc {
   stroke: var(--tone);
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.25s linear;
+  transition: stroke-dashoffset 0.25s linear, stroke 0.4s;
 }
 .face {
   position: absolute;
@@ -85,13 +109,13 @@ input:focus-visible {
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.5px;
 }
-.timer:not(.running) .time {
+body:not(.running) .time {
   color: var(--ws-muted);
 }
 .label {
   margin-top: 4px;
   font-size: 11px;
-  color: var(--ws-muted);
+  color: var(--tone);
 }
 
 .side {
@@ -99,7 +123,7 @@ input:focus-visible {
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 .tabs {
   display: flex;
@@ -118,61 +142,329 @@ input:focus-visible {
 }
 .tab.on {
   color: var(--ws-ink);
-  background: color-mix(in srgb, var(--tone) 18%, transparent);
+  background: color-mix(in srgb, var(--tone) 20%, transparent);
 }
+
+.intent {
+  width: 100%;
+  font: inherit;
+  font-size: 12px;
+  color: var(--ws-ink);
+  background: color-mix(in srgb, var(--ws-bg) 70%, transparent);
+  border: 1px solid var(--ws-line);
+  border-radius: 6px;
+  padding: 3px 8px;
+}
+.intent::placeholder {
+  color: var(--ws-muted);
+}
+
 .controls {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 .controls button {
   flex: 1;
-  padding: 4px 6px;
+  padding: 3px 4px;
+  font-variant-numeric: tabular-nums;
+}
+.controls .primary {
+  flex: 2;
+}
+.controls .icon {
+  flex: 0 0 28px;
 }
 .primary {
-  border-color: var(--tone, var(--ws-accent));
-  background: color-mix(in srgb, var(--tone, var(--ws-accent)) 16%, transparent);
+  border-color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 18%, transparent);
   font-weight: 600;
 }
+
 .stats {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   font-size: 12px;
+}
+.goal {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
 }
 .dots {
   display: flex;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 3px;
 }
 .dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  border: 1.5px solid var(--ws-red);
+  border: 1.5px solid var(--focus);
+  opacity: 0.7;
 }
 .dot.full {
-  background: var(--ws-red);
+  background: var(--focus);
+  opacity: 1;
 }
-.gear {
+.tools {
   margin-left: auto;
+  display: flex;
+  gap: 2px;
+}
+.bare {
   border: 0;
   padding: 0 4px;
   color: var(--ws-muted);
-  font-size: 44px;
+  font-size: 16px;
   line-height: 1;
 }
-.gear:hover {
+.bare:hover {
   color: var(--ws-ink);
 }
 
-/* Settings */
+/* Narrow column: put the dial above the controls. */
+@media (max-width: 300px) {
+  .timer {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+/* --- the pane ------------------------------------------------------------------------------ */
+
+body.in-pane main {
+  padding: 24px 28px;
+}
+.pane {
+  display: grid;
+  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  gap: 40px;
+  max-width: 1100px;
+  margin: 0 auto;
+  align-items: start;
+}
+.pane-timer {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pane-timer .dial {
+  width: 240px;
+  height: 240px;
+  align-self: center;
+}
+.pane-timer .ring circle {
+  stroke-width: 5;
+}
+.pane-timer .time {
+  font-size: 46px;
+}
+.pane-timer .label {
+  font-size: 13px;
+}
+.pane-timer .controls button {
+  padding: 5px 6px;
+}
+.pane-timer .intent {
+  font-size: 13px;
+  padding: 5px 10px;
+}
+
+.pane-history h3 {
+  margin: 22px 0 8px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ws-muted);
+}
+.cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.card {
+  border: 1px solid var(--ws-line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--ws-bg) 50%, transparent);
+}
+.card-label {
+  font-size: 11px;
+  color: var(--ws-muted);
+}
+.card-value {
+  font: 600 22px/1.2 var(--ws-font-mono, ui-monospace, Menlo, monospace);
+  font-variant-numeric: tabular-nums;
+}
+
+.bars {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  height: 140px;
+}
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+.bar-n,
+.bar-day {
+  font-size: 11px;
+  height: 15px;
+}
+.bar-track {
+  flex: 1;
+  width: 100%;
+  max-width: 36px;
+  display: flex;
+  align-items: flex-end;
+}
+.bar {
+  width: 100%;
+  height: calc(var(--h) * 1%);
+  min-height: 2px;
+  border-radius: 4px 4px 1px 1px;
+  background: color-mix(in srgb, var(--focus) 55%, transparent);
+}
+.bar.today {
+  background: var(--focus);
+}
+/* The goal, a dashed line across the bars: the bar area runs from 18px above the bottom to 18px below the top. */
+.goal-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(18px + (100% - 36px) * var(--h) / 100);
+  border-top: 1px dashed var(--ws-muted);
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+.heat {
+  display: grid;
+  grid-template-rows: repeat(7, 13px);
+  grid-auto-flow: column;
+  grid-auto-columns: 13px;
+  gap: 3px;
+}
+.cell {
+  border-radius: 3px;
+  background: var(--ws-line);
+}
+.cell.l1 {
+  background: color-mix(in srgb, var(--focus) 30%, var(--ws-line));
+}
+.cell.l2 {
+  background: color-mix(in srgb, var(--focus) 55%, var(--ws-line));
+}
+.cell.l3 {
+  background: color-mix(in srgb, var(--focus) 78%, var(--ws-line));
+}
+.cell.l4 {
+  background: var(--focus);
+}
+.cell.future {
+  background: transparent;
+}
+
+.projects {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.proj {
+  display: grid;
+  grid-template-columns: minmax(80px, 160px) 1fr 60px;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+}
+.proj-name {
+  font-family: var(--ws-font-mono, ui-monospace, Menlo, monospace);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.proj-track {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--ws-line);
+  overflow: hidden;
+}
+.proj-bar {
+  display: block;
+  height: 100%;
+  width: calc(var(--w) * 1%);
+  background: var(--focus);
+  border-radius: 4px;
+}
+.proj-min {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.today {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.today li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--ws-line);
+}
+.today .when {
+  flex: 0 0 64px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.today .what {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tag {
+  font: 11px var(--ws-font-mono, ui-monospace, Menlo, monospace);
+  color: var(--ws-muted);
+  border: 1px solid var(--ws-line);
+  border-radius: 4px;
+  padding: 0 5px;
+}
+
+@media (max-width: 720px) {
+  .pane {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .pane-timer {
+    position: static;
+  }
+}
+
+/* --- settings ------------------------------------------------------------------------------ */
+
 .settings {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  max-width: 560px;
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
   gap: 8px;
 }
 .field {
@@ -181,6 +473,12 @@ input:focus-visible {
   gap: 3px;
   font-size: 11px;
   color: var(--ws-muted);
+}
+.field.inline {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
 }
 .field input {
   width: 100%;
@@ -191,13 +489,36 @@ input:focus-visible {
   border-radius: 5px;
   padding: 3px 6px;
 }
+.pick {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  padding: 2px 6px;
+  background: var(--ws-bg);
+}
 .row {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
 }
-.row .primary {
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.col p {
+  margin: 0;
+}
+.section-label {
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ws-muted);
+  border-top: 1px solid var(--ws-line);
+  padding-top: 8px;
+}
+.row .done {
   margin-left: auto;
 }
 .check {
@@ -219,15 +540,4 @@ input:focus-visible {
 }
 .link:hover {
   color: var(--ws-ink);
-}
-
-/* Narrow column: put the dial above the controls. */
-@media (max-width: 300px) {
-  .timer {
-    flex-direction: column;
-    gap: 8px;
-  }
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
 }
